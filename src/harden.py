@@ -12,30 +12,31 @@ warning = ""
 if is_posix():
     #
     # check ssh config
+    #   Keywords are case insensitive, values are case sensitive
     #
     if os.path.isfile("/etc/ssh/sshd_config"):
         fileopen = open("/etc/ssh/sshd_config", "r")
         data = fileopen.read()
         if is_config_enabled("ROOT_CHECK"):
-            match = re.search("RootLogin yes", data)
+            match = re.search("RootLogin\s+yes", data, flags=re.IGNORECASE)
             # if we permit root logins trigger alert
             if match:
                 # trigger warning if match
                 warning = warning + \
                     "[!] Issue identified: /etc/ssh/sshd_config allows RootLogin. An attacker can gain root access to the system if password is guessed. Recommendation: Change RootLogin yes to RootLogin no\n\r\n\r"
-        match = re.search(r"Port 22\b", data)
+        match = re.search(r"Port\s+22\b", data, flags=re.IGNORECASE)
         if match:
             if is_config_enabled("SSH_DEFAULT_PORT_CHECK"):
                 # trigger warning if match
                 warning = warning + "[!] Issue identified: /etc/ssh/sshd_config. SSH is running on the default port 22. An attacker commonly scans for these type of ports. Recommendation: Change the port to something high that doesn't get picked up by typical port scanners.\n\r\n\r"
 
         # add SSH detection for password auth
-        match = re.search("PasswordAuthentication yes", data)
+        match = re.search("PasswordAuthentication\s+yes", data, flags=re.IGNORECASE)
         # if password authentication is used
         if match:
             warning = warning + \
                 "[!] Issue identified: Password authentication enabled. An attacker may be able to brute force weak passwords.\n\r\n\r"
-            match = re.search("Protocol 1|Protocol 2,1", data)
+            match = re.search("Protocol[^1]*1", data, flags=re.IGNORECASE)
         #
         if match:
             # triggered
